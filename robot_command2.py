@@ -17,7 +17,7 @@ class robot_command:
 		self.vec_float_lengths = []
 
 		self.mat_float_weights = []
-		self.sc_float_lambda = .3
+		self.sc_float_lambda = .1
 		self.sc_float_alpha = .6
 
 		self.vec_float_s = []
@@ -47,8 +47,8 @@ class robot_command:
 
 #		self.vec_float_lengths = np.mat('[0.0; 0.0; 0.0; 0.0]')
 #		self.mat_float_weights = np.mat('[0.0, 0.0, 0.0; 0.0, 0.0, 0.0; 0.0, 0.0, 0.0; 0.0, 0.0, 0.0')
-		self.vec_float_lengths = np.mat('[0.0; 0.0; 0.0]')
-		self.mat_float_weights = np.mat('[0.0, 0.0, 0.0; 0.0, 0.0, 0.0; 0.0, 0.0, 0.0]')
+		self.vec_float_lengths = np.mat('[0.0; 0.0; 0.0; 0.0]')
+		self.mat_float_weights = np.mat('[0.0, 0.0, 0.0; 0.0, 0.0, 0.0; 0.0, 0.0, 0.0 ; 0.0, 0.0, 0.0]')
 
 
 	#############################################""
@@ -82,13 +82,12 @@ class robot_command:
 		return [x, y, z]
 
 	def initWeights(self):
-		self.mat_float_weights = np.mat('[1.0 1.0 -1.0 ; -1.0 1.0 -1.0 ; 1.0 -1.0 -1.0]')* math.sqrt(3)/3
-		self.mat_float_weights = np.mat('[1.0 1.0 -1.0 ; -1.0 1.0 -1.0 ; 1.0 -1.0 -1.0]')* math.sqrt(3)/3
+		self.mat_float_weights = np.mat('[1.0 1.0 -1.0 ; -1.0 1.0 -1.0 ; -1.0 -10 -1.0 ; 1.0 -1.0 -1.0]')* math.sqrt(3)/3
 	#############################################""
 
 
 	def computeLengths(self):
-		for i in range(3):
+		for i in range(4):
 			ABi = 0
 			for j in range(3):
 				ABi += (self.mat_float_attached_points[i,j]- self.vec_float_S[j])**2
@@ -160,7 +159,7 @@ class robot_command:
 			alpha = self.sc_float_alpha
 
 			coef_correction = alpha/(ds.transpose()*ds)
-			value_correction = (dq/4-Ls*ds) * ds.transpose()
+			value_correction = (dq-Ls*ds) * ds.transpose()
 
 			mat_corr = coef_correction[0,0]*value_correction
 
@@ -169,10 +168,11 @@ class robot_command:
 			Ls[0,:] /= np.linalg.norm(Ls[0,:])
 			Ls[1,:] /= np.linalg.norm(Ls[1,:])
 			Ls[2,:] /= np.linalg.norm(Ls[2,:])
+			Ls[3,:] /= np.linalg.norm(Ls[2,:])
 
 			self.mat_float_weights = Ls
 
-			#print('K après :\n', self.mat_float_weights)
+			print('K après :\n', self.mat_float_weights)
 
 		self.counter += 1
 
@@ -184,7 +184,7 @@ total_error = str()
 lengths = str()
 
 rc = robot_command()
-rc.config("./config.script")
+rc.config("./config2.script")
 
 rc.setS(0.2, 1.7, 2.0)
 print('Initial S :\n', rc.vec_float_S)
@@ -203,7 +203,7 @@ rc.computePosition()
 
 trajectory += '{0} {1} {2}\n'.format(rc.vec_float_S[0,0], rc.vec_float_S[1,0], rc.vec_float_S[2,0])
 
-for i in range(4096):
+for i in range(1024):
 
 	rc.updateLengths()
 	lengths += '{0} {1} {2} {3}\n'.format(i, rc.vec_float_lengths[0,0], rc.vec_float_lengths[1,0], rc.vec_float_lengths[2,0])
